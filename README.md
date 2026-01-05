@@ -24,7 +24,7 @@ sudo pacman -S macchanger
 
 ### 2. Clone this repo
 git clone https://github.com/yourusername/macchanger-daemon.git
-cd macchanger-daemon
+cd macchanger-daeion
 
 ### 3. Copy files to appropriate locations
 sudo cp change-mac.sh /usr/local/bin/change-mac.sh
@@ -62,13 +62,13 @@ pip install macchanger-daemon
 
 Then run:
 
-macchanger-daemon
+macchanger-daeion
 
 This will run the same MAC randomization logic and can be daemonized with cron or systemd timer.
 
 ### 🔁 Want to randomize every 30 minutes?
 
-Create a systemd timer unit like macchanger.timer and adjust the interval. See docs/timer-example.md for reference (coming soon).
+Create a systemd timer unit like macchanger.timer and adjust the interval. See docs/timer-example.md for reference.
 
 ### 📄 Files in This Repo
 

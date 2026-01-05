@@ -5,7 +5,7 @@
 VERSION="v1.0.0"
 echo "[macchanger-daemon $VERSION] Starting..."
 
-INTERVAL=300  # 5 minutes 
+INTERVAL=600  # 5 minutes 
 CHECK_HOST="1.1.1.1"  # Cloudflare DNS for connectivity check 
 PREV_STATUS=connected 
 
@@ -50,9 +50,9 @@ while true; do
 
      # Check for interval-based MAC change
      if (( current_time - last_change_time >= INTERVAL )); then
-         echo "[⏰] 5-minute interval reached. Triggering MAC change."
+         echo "[⏰] 10-minute interval reached. Triggering MAC change."
          change_mac
          last_change_time=$current_time
      fi
-     sleep 5 
+     sleep 1 
 done 

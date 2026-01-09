@@ -1,109 +1,171 @@
-# MAC Address Randomizer Daemon for Linux-based Systems
+# macchanger_daeion
 
-![License](https://img.shields.io/badge/license-MIT-green) 
-![Last Commit](https://img.shields.io/github/last-commit/Pushpenderrathore/macchanger_daemon) 
-![Stars](https://img.shields.io/github/stars/Pushpenderrathore/macchanger_daemon?style=social)
-![Repo Size](https://img.shields.io/github/repo-size/Pushpenderrathore/macchanger_daemon)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/Pushpenderrathore/macchanger_daeion)](https://github.com/Pushpenderrathore/macchanger_daeion/commits)
+[![GitHub stars](https://img.shields.io/github/stars/Pushpenderrathore/macchanger_daeion?style=social)](https://github.com/Pushpenderrathore/macchanger_daeion/stargazers)
+[![Repo size](https://img.shields.io/github/repo-size/Pushpenderrathore/macchanger_daeion)](https://github.com/Pushpenderrathore/macchanger_daeion)
 
-This project sets up a systemd service that **randomizes your MAC address at system boot** for all type of network interfaces like (`enp7s0` and `wlp13s0`). It uses [`macchanger`](https://github.com/alobbs/macchanger) and works on **Arch Linux** or any `systemd` linux-based distro.
+A small systemd-based utility that randomizes (spoofs) network interface MAC addresses on system boot and can be run periodically via a systemd timer. It uses the well-known `macchanger` utility and is intended for systemd-based Linux distributions (Arch, Debian/Ubuntu, Fedora, etc.).
 
-## 🛡️ Why Use It?
-- Improve privacy by changing your MAC on every boot and with interval of every 5 minutes.
-- Spoof MAC address to avoid tracking on public networks.
-- Lightweight and portable on any linux based devices and runs automatically.
+Why use this
+- Improve privacy by rotating MAC addresses to reduce device tracking on networks.
+- Automatically randomize MAC addresses at boot and optionally at configured intervals.
+- Lightweight: uses existing system utilities and a simple shell script + systemd units.
 
----
+Requirements
+- A systemd-based Linux distribution.
+- `macchanger` installed and available in PATH.
+- Root privileges to change MAC addresses and install systemd units.
 
-## Setup Instructions
+Supported platforms
+- Any Linux distribution that uses systemd and provides `macchanger` (Arch Linux, Debian/Ubuntu, Fedora, and derivatives).
 
-### 1. Install macchanger
+Quick features
+- Randomizes MAC at boot via a systemd service.
+- Optional periodic randomization via a systemd timer (configurable interval).
+- Minimal dependencies and easy to inspect/modify.
 
+Table of contents
+- Installation
+- Configuration
+- Usage
+- Enabling periodic randomization (systemd timer)
+- Files in this repository
+- Contributing
+- License
+- Maintainer
+
+## Installation
+
+1. Install macchanger
+- Arch / Manjaro:
+  ```bash
+  sudo pacman -Syu macchanger
+  ```
+- Debian / Ubuntu:
+  ```bash
+  sudo apt update
+  sudo apt install macchanger
+  ```
+- Fedora:
+  ```bash
+  sudo dnf install macchanger
+  ```
+
+2. Clone this repository
 ```bash
-### For manual installation.  
-sudo pacman -S macchanger 
-
-### 2. Clone this repo
-git clone https://github.com/yourusername/macchanger-daemon.git
-cd macchanger-daeion
-
-### 3. Copy files to appropriate locations
-sudo cp change-mac.sh /usr/local/bin/change-mac.sh
-sudo chmod +x /usr/local/bin/change-mac.sh
-sudo cp macchanger.service /etc/systemd/system/macchanger.service
-
-### 4. Enable the service
-sudo systemctl daemon-reload
-sudo systemctl enable macchanger.service
-sudo systemctl start macchanger.service
+git clone https://github.com/Pushpenderrathore/macchanger_daeion.git
+cd macchanger_daeion
 ```
 
-## 🔁 Want to randomize MAC every 30 minutes?
-- Create a systemd timer now available for linux based distros 
+3. Install the script and systemd service
+```bash
+# Install the main script
+sudo cp change-mac.sh /usr/local/bin/change-mac.sh
+sudo chmod +x /usr/local/bin/change-mac.sh
 
-## ✨ Contributions Welcome
+# Install the systemd service unit
+sudo cp macchanger.service /etc/systemd/system/macchanger.service
 
-- Support for more interfaces?
+# Reload systemd, enable and start the service
+sudo systemctl daemon-reload
+sudo systemctl enable --now macchanger.service
+```
 
-- AUR package?
+Notes:
+- The example above places the script in `/usr/local/bin` and the systemd unit in `/etc/systemd/system`. Adjust paths if you prefer a different layout.
+- You may need to edit `change-mac.sh` to specify which interfaces to randomize (see Configuration).
 
-- Cross-platform support?
+## Configuration
 
-- Feel free to fork and send PRs!
+- Interfaces
+  - The script can be configured to target specific interfaces (for example `wlp3s0`, `enp0s31f6`) or all non-loopback interfaces. Edit `change-mac.sh` to list desired interface names or adjust its filtering logic.
+  - If the script supports arguments or environment variables for interface selection, you may pass them via the systemd unit (see the service file or set a drop-in unit).
 
----
+- Logging
+  - The service writes to the system journal. Use `journalctl` to view logs.
 
-🐍 Python (via pip)
+## Usage
 
->📌 Coming Soon: Once published to PyPI
+- Check status:
+  ```bash
+  sudo systemctl status macchanger.service
+  ```
 
-Install with:
+- Follow logs in real time:
+  ```bash
+  sudo journalctl -u macchanger.service -f
+  ```
 
-pip install macchanger-daemon
+- Run the script manually (useful for testing):
+  ```bash
+  sudo /usr/local/bin/change-mac.sh
+  ```
 
-Then run:
+- To test on a single interface :
+  ```bash
+  sudo /usr/local/bin/change-mac.sh wlp13s0
+  ```
 
-macchanger-daeion
+## Periodic randomization (systemd service)
 
-This will run the same MAC randomization logic and can be daemonized with cron or systemd timer.
+```ini
+[Unit]
+Description=Randomize MAC address at boot
+After=network-pre.target
+Before=network.target
+Wants=network-pre.target
 
-### 🔁 Want to randomize every 30 minutes?
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/change-mac.sh
+Restart=always
 
-Create a systemd timer unit like macchanger.timer and adjust the interval. See docs/timer-example.md for reference.
+[Install]
+WantedBy=multi-user.target
+```
 
-### 📄 Files in This Repo
+OR-Direct run option :
+```bash
+sudo ./install.sh   
+sudo systemctl status macchanger.service
+```
 
-change-mac.sh – core script
+When run, `./install.sh` it will trigger `macchanger.service` at the system Deamonic level to configure everything.
 
-macchanger.service – systemd service
+## Files in this repository
 
-setup.py – for PyPI packaging
+- change-mac.sh — Core script that performs MAC randomization.
+- macchanger.service — systemd service unit to run the script at boot (and on-demand).
+- macchanger.timer — optional systemd timer unit to run the service periodically (example).
+- install.sh — convenience installation script (one-shot installer).
+- setup.py / requirements.txt — packaging helpers (if converting to a Python package).
+- macchanger-daemon — optional CLI/entrypoint (if present).
+- CODE_OF_CONDUCT.md — community guidelines.
+- LICENSE — MIT License.
 
-requirements.txt – Python dependencies (if any)
+(Adjust names above if your repository differs.)
 
-install.sh – one-click setup script
+## Contributing
 
-macchanger-daemon – optional CLI stub
+Contributions are welcome. Typical ways to contribute:
+- Add support for additional distributions or interfaces.
+- Improve the script's robustness and logging.
+- Add automated tests or packaging (AUR, DEB, RPM).
+- Improve documentation and add examples.
 
-CODE_OF_CONDUCT.md – community guidelines
+Please follow the repository's code of conduct and open a pull request. If you want me to prepare a PR with the revised README, tell me and I can create one (I'll need the repository owner permission to push).
 
-LICENSE – MIT License
+## Security & privacy considerations
 
-### 🤝 Contributing
+- Changing a MAC address may violate network policies in some environments. Do not use this on networks where spoofing is prohibited.
+- Changing the MAC of an active interface may temporarily disrupt network connectivity.
+- Keep in mind that MAC randomization alone does not guarantee anonymity; use it in combination with other privacy measures if needed.
 
-Add support for more distros or interfaces
+## License
 
-Turn into full Python daemon
+This project is licensed under the MIT License. See LICENSE for details.
 
-Improve logging & error handling
+## Maintainer
 
-PRs are welcome!
-
-### 📢 Maintained by
-
-Pushpenderrathore
-
-GitHub: @Pushpenderrathore
-
-### 📬 License
-
-This project is licensed under the MIT License.
+Pushpenderrathore — https://github.com/Pushpenderrathore

@@ -2,7 +2,7 @@
 
 # MAC Address Watcher - Changes MAC address every 30 minutes and on internet reconnection 
 
-VERSION="v1.0.0"
+VERSION="v1.1.0"
 echo "[macchanger-daemon $VERSION] Starting..."
 
 INTERVAL=1800  # 30 minutes 
